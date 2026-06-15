@@ -35,6 +35,43 @@ CLI:
 go install github.com/osarogie/envx/cmd/envx@latest
 ```
 
+## Quick start
+
+```bash
+# 1. Put your secrets in a plaintext .env
+cat > .env <<'EOF'
+DATABASE_URL=postgres://user:pass@localhost:5432/app
+PUBLIC_BASE_URL=https://example.com # dotenvx:plain
+EOF
+
+# 2. Encrypt it. This mints a key pair on first run:
+#    - DOTENV_PUBLIC_KEY is written into .env (safe to commit)
+#    - DOTENV_PRIVATE_KEY is written into .env.keys (keep secret!)
+envx encrypt -f .env
+
+# 3. Inspect what's stored — no private key needed:
+envx list -f .env
+#   DATABASE_URL       encrypted
+#   DOTENV_PUBLIC_KEY  plain
+#   PUBLIC_BASE_URL    plain        # left plaintext via the dotenvx:plain directive
+
+# 4. Commit the encrypted .env; never commit .env.keys.
+echo ".env.keys" >> .gitignore
+git add .env .gitignore && git commit -m "Add encrypted env"
+
+# 5. Run your app with secrets decrypted into its environment.
+#    In CI/prod, provide the key via the DOTENV_PRIVATE_KEY env var instead of .env.keys.
+envx run -f .env -- ./my-server
+```
+
+To read a single value back (e.g. in a script):
+
+```bash
+export DOTENV_PRIVATE_KEY="$(grep DOTENV_PRIVATE_KEY .env.keys | cut -d'"' -f2)"
+envx get -f .env DATABASE_URL
+# postgres://user:pass@localhost:5432/app
+```
+
 ## How it works
 
 Each `.env` file has an associated key pair:
