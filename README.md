@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/osarogie/envx/actions/workflows/ci.yml/badge.svg)](https://github.com/osarogie/envx/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/osarogie/envx.svg)](https://pkg.go.dev/github.com/osarogie/envx)
+[![Release](https://img.shields.io/github/v/release/osarogie/envx?sort=semver)](https://github.com/osarogie/envx/releases/latest)
 
 A small, dependency-light Go library and CLI for working with encrypted `.env`
 files, compatible with the [dotenvx](https://dotenvx.com) workflow of committing
