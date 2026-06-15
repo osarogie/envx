@@ -1,0 +1,14 @@
+# Build output
+/envx
+/bin/
+
+# Local env files used in manual testing
+.env
+.env.*
+!.env.example
+.env.keys
+
+# Go
+*.test
+*.out
+coverage.txt
