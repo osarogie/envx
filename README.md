@@ -61,6 +61,9 @@ key in turn.
 envx run [flags] -- <command> [args...]
 envx encrypt [-f <file>]
 envx decrypt --stdout [-f <file>]
+envx list [-f <file>]            # list keys and whether each is encrypted
+envx get [-f <file>] <KEY>       # print one decrypted value
+envx keygen [-f <file>]          # generate a key pair for <file>
 ```
 
 Flags for `run`:

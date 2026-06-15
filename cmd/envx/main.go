@@ -31,6 +31,12 @@ func main() {
 		encryptCmd(os.Args[2:])
 	case "decrypt":
 		decryptCmd(os.Args[2:])
+	case "list", "ls":
+		listCmd(os.Args[2:])
+	case "get":
+		getCmd(os.Args[2:])
+	case "keygen":
+		keygenCmd(os.Args[2:])
 	case "-h", "--help", "help":
 		usageAndExit(0)
 	default:
@@ -46,6 +52,9 @@ func usageAndExit(code int) {
 	fmt.Fprintln(os.Stderr, "  envx run [flags] -- <command> [args...]")
 	fmt.Fprintln(os.Stderr, "  envx encrypt [-f <file>]")
 	fmt.Fprintln(os.Stderr, "  envx decrypt --stdout [-f <file>]")
+	fmt.Fprintln(os.Stderr, "  envx list [-f <file>]              list keys and whether each is encrypted")
+	fmt.Fprintln(os.Stderr, "  envx get [-f <file>] <KEY>         print one decrypted value")
+	fmt.Fprintln(os.Stderr, "  envx keygen [-f <file>]            generate a key pair for <file>")
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "Flags:")
 	fmt.Fprintln(os.Stderr, "  -f <file>        load a specific .env file (repeatable)")
@@ -218,4 +227,76 @@ func dotenvLines(values map[string]string) []string {
 		out = append(out, fmt.Sprintf("%s=%q", k, v))
 	}
 	return out
+}
+
+func listCmd(args []string) {
+	fs := flag.NewFlagSet("list", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	var file string
+	fs.StringVar(&file, "f", ".env", "dotenv file path")
+	if err := fs.Parse(args); err != nil {
+		os.Exit(2)
+	}
+
+	// Listing only parses the file; it never decrypts, so no private key is needed.
+	infos, err := envx.ListKeys(file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "envx: %v\n", err)
+		os.Exit(1)
+	}
+	for _, in := range infos {
+		state := "plain"
+		if in.Encrypted {
+			state = "encrypted"
+		}
+		fmt.Printf("%s\t%s\n", in.Key, state)
+	}
+}
+
+func getCmd(args []string) {
+	fs := flag.NewFlagSet("get", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	var file string
+	fs.StringVar(&file, "f", ".env", "dotenv file path")
+	if err := fs.Parse(args); err != nil {
+		os.Exit(2)
+	}
+	rest := fs.Args()
+	if len(rest) != 1 {
+		fmt.Fprintln(os.Stderr, "usage: envx get [-f <file>] <KEY>")
+		os.Exit(2)
+	}
+	key := rest[0]
+
+	values, err := envx.DecryptFile(envx.DecryptFileOptions{File: file})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "envx: %v\n", err)
+		os.Exit(1)
+	}
+	v, ok := values[key]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "envx: key not found: %s\n", key)
+		os.Exit(1)
+	}
+	fmt.Println(v)
+}
+
+func keygenCmd(args []string) {
+	fs := flag.NewFlagSet("keygen", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	var file string
+	fs.StringVar(&file, "f", ".env", "dotenv file the key pair is for (selects the DOTENV_*_KEY var names)")
+	if err := fs.Parse(args); err != nil {
+		os.Exit(2)
+	}
+
+	pub, priv, err := envx.GenerateKeypair()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "envx: %v\n", err)
+		os.Exit(1)
+	}
+	// Emit ready-to-paste lines: the public key belongs in the env file, the
+	// private key in .env.keys (never commit it).
+	fmt.Printf("%s=%q\n", envx.PublicKeyVarForEnvFile(file), pub)
+	fmt.Printf("%s=%q\n", envx.PrivateKeyVarForEnvFile(file), priv)
 }
