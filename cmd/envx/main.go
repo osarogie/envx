@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/osarogie/envx-go"
+	"github.com/osarogie/envx"
 )
 
 type multiFlag []string

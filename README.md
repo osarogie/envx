@@ -1,13 +1,13 @@
-# envx-go
+# envx
 
-[![CI](https://github.com/osarogie/envx-go/actions/workflows/ci.yml/badge.svg)](https://github.com/osarogie/envx-go/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/osarogie/envx-go.svg)](https://pkg.go.dev/github.com/osarogie/envx-go)
+[![CI](https://github.com/osarogie/envx/actions/workflows/ci.yml/badge.svg)](https://github.com/osarogie/envx/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/osarogie/envx.svg)](https://pkg.go.dev/github.com/osarogie/envx)
 
 A small, dependency-light Go library and CLI for working with encrypted `.env`
 files, compatible with the [dotenvx](https://dotenvx.com) workflow of committing
 encrypted secrets next to your code.
 
-Unlike upstream dotenvx (which uses secp256k1 / ECIES), `envx-go` seals values
+Unlike upstream dotenvx (which uses secp256k1 / ECIES), `envx` seals values
 with **post-quantum cryptography**: ML-KEM-768 (FIPS 203) key encapsulation
 combined with AES-256-GCM. Encrypted values carry the `encrypted_pqc:` prefix.
 
@@ -25,13 +25,13 @@ combined with AES-256-GCM. Encrypted values carry the `encrypted_pqc:` prefix.
 Library:
 
 ```bash
-go get github.com/osarogie/envx-go
+go get github.com/osarogie/envx
 ```
 
 CLI:
 
 ```bash
-go install github.com/osarogie/envx-go/cmd/envx@latest
+go install github.com/osarogie/envx/cmd/envx@latest
 ```
 
 ## How it works
@@ -113,7 +113,7 @@ package main
 import (
 	"log"
 
-	"github.com/osarogie/envx-go"
+	"github.com/osarogie/envx"
 )
 
 func main() {
@@ -140,7 +140,7 @@ Other useful entry points:
 - `envx.GenerateKeypair()` — mint a new ML-KEM-768 key pair.
 - `envx.EncryptFile(...)` / `envx.DecryptFile(...)` — file-level operations.
 
-See the [package documentation](https://pkg.go.dev/github.com/osarogie/envx-go)
+See the [package documentation](https://pkg.go.dev/github.com/osarogie/envx)
 for the full API.
 
 ## License

@@ -1,4 +1,4 @@
-module github.com/osarogie/envx-go
+module github.com/osarogie/envx
 
 go 1.24
 
