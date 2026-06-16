@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest a new capability or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        envx aims to stay small and focused. Proposals that keep the dependency
+        footprint minimal and the API surface tight are easier to accept.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do, and what makes it hard today?
+      placeholder: e.g. I want to re-encrypt a file after rotating keys without manually decrypting first.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: The CLI subcommand, flag, or library function you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches or existing workarounds you've tried.
+    validations:
+      required: false

@@ -1,0 +1,56 @@
+name: Bug report
+description: Report something that isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug!
+
+        ⚠️ **Never paste real secrets, private keys, or the contents of `.env.keys`.**
+        Use synthetic values when sharing `.env` snippets. If this is a security
+        vulnerability, please report it privately instead (see the link on the
+        "New issue" page) rather than opening a public issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including any error output.
+      placeholder: e.g. `envx run` fails with "missing DOTENV_PRIVATE_KEY" even though the key is set.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps (and a sanitized `.env` if relevant) that trigger the bug.
+      placeholder: |
+        1. Create a `.env` with `FOO=bar`
+        2. Run `envx encrypt -f .env`
+        3. Run `envx get -f .env FOO`
+        4. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen instead.
+    validations:
+      required: true
+  - type: input
+    id: envx-version
+    attributes:
+      label: envx version
+      description: Output of `envx` from `go install ...@vX.Y.Z`, or the module version / commit you built from.
+      placeholder: v0.2.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Go version & OS
+      description: Output of `go version`, plus your OS/arch.
+      placeholder: go1.24.0 darwin/arm64
+    validations:
+      required: true
