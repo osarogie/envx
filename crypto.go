@@ -149,6 +149,20 @@ func Encrypt(plaintext string, publicKeyB64 string, ctx EncryptionContext) (stri
 	return encryptedPrefix + base64.StdEncoding.EncodeToString(payload), nil
 }
 
+// isLegacyEncrypted reports whether value is an encrypted_pqc payload sealed with
+// the pre-AAD wire version (v1). Non-encrypted or malformed/undecodable payloads
+// return false, so callers leave them untouched rather than risk rewriting garbage.
+func isLegacyEncrypted(value string) bool {
+	if !strings.HasPrefix(value, encryptedPrefix) {
+		return false
+	}
+	payload, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(value, encryptedPrefix))
+	if err != nil || len(payload) == 0 {
+		return false
+	}
+	return payload[0] == pqcWireVersionLegacy
+}
+
 // GenerateKeypair returns (publicKeyBase64, privateKeyBase64) for ML-KEM-768.
 func GenerateKeypair() (string, string, error) {
 	dk, err := mlkem.GenerateKey768()
