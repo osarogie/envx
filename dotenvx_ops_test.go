@@ -18,12 +18,13 @@ func TestOperationalSecurity_SamePlaintextYieldsDistinctCiphertexts(t *testing.T
 		t.Fatal(err)
 	}
 	plain := "guessable-or-repeated-secret"
+	ctx := EncryptionContext{VarName: "SECRET", PublicKeyVar: "DOTENV_PUBLIC_KEY"}
 
-	a, err := Encrypt(plain, pub)
+	a, err := Encrypt(plain, pub, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := Encrypt(plain, pub)
+	b, err := Encrypt(plain, pub, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,11 +32,11 @@ func TestOperationalSecurity_SamePlaintextYieldsDistinctCiphertexts(t *testing.T
 		t.Fatal("two encryptions of the same plaintext must differ: ML-KEM encapsulation uses fresh randomness so ciphertext is not deterministic")
 	}
 
-	decA, err := DecryptIfEncrypted(a, []string{priv})
+	decA, err := DecryptIfEncrypted(a, []string{priv}, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	decB, err := DecryptIfEncrypted(b, []string{priv})
+	decB, err := DecryptIfEncrypted(b, []string{priv}, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +52,7 @@ func TestOperationalSecurity_PrivateKeyFromEnvKeysNotMergedIntoLoadedValues(t *t
 	if err != nil {
 		t.Fatal(err)
 	}
-	enc, err := Encrypt("payload", pub)
+	enc, err := Encrypt("payload", pub, EncryptionContext{VarName: "APP", PublicKeyVar: "DOTENV_PUBLIC_KEY"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,14 +89,15 @@ func TestOperationalSecurity_CommaSeparatedPrivateKeys_DecryptsWithValidKeyInLis
 	}
 
 	plain := "rotation-scenario"
-	enc, err := Encrypt(plain, pub)
+	ctx := EncryptionContext{VarName: "ROTATED", PublicKeyVar: "DOTENV_PUBLIC_KEY"}
+	enc, err := Encrypt(plain, pub, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Same format as DOTENV_PRIVATE_KEY="old,new" in ops / CI.
 	combined := privWrong + "," + privGood
-	got, err := DecryptIfEncrypted(enc, strings.Split(combined, ","))
+	got, err := DecryptIfEncrypted(enc, strings.Split(combined, ","), ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

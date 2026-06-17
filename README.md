@@ -81,7 +81,10 @@ Each `.env` file has an associated key pair:
   This is safe to commit and is what `encrypt` uses.
 - A **private (decapsulation) key** is read from the environment variable
   `DOTENV_PRIVATE_KEY` / `DOTENV_PRIVATE_KEY_<SUFFIX>`, or from a `.env.keys`
-  file (never commit `.env.keys`). It is what `decrypt`/`run` use.
+  file located **next to the target env file** (never commit `.env.keys`). It
+  is what `decrypt`/`run` use. For safety, a `.env.keys` in the current working
+  directory is **not** consulted as a fallback — keys must come from the
+  environment variable or the adjacent keys file.
 
 Filename → key-variable mapping:
 
@@ -176,8 +179,11 @@ Other useful entry points:
 - `envx.EnvironWithMergedOverlay(base, merged, overload)` /
   `envx.EnvironMergedKeys(...)` — build a `[]string` environment for a child
   process (`exec.Cmd.Env`).
-- `envx.Encrypt(plaintext, publicKeyB64)` /
-  `envx.DecryptIfEncrypted(value, privateKeysB64)` — value-level crypto.
+- `envx.Encrypt(plaintext, publicKeyB64, ctx)` /
+  `envx.DecryptIfEncrypted(value, privateKeysB64, ctx)` — value-level crypto.
+  `ctx` is an `envx.EncryptionContext{VarName, PublicKeyVar}` bound into the
+  AES-GCM tag as additional authenticated data, so a ciphertext cannot be moved
+  to a different variable or env file without decryption failing.
 - `envx.GenerateKeypair()` — mint a new ML-KEM-768 key pair.
 - `envx.EncryptFile(...)` / `envx.DecryptFile(...)` — file-level operations.
 

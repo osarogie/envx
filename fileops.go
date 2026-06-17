@@ -92,18 +92,34 @@ func EncryptFile(opts EncryptFileOptions) error {
 				if len(privateKeys) == 0 {
 					return ErrMissingPrivateKey
 				}
-				dec, err := DecryptIfEncrypted(v, privateKeys)
+				dec, err := DecryptIfEncrypted(v, privateKeys, contextForFileVar(file, k))
 				if err != nil {
 					return err
 				}
 				values[k] = dec
+				continue
+			}
+			// Upgrade legacy v1 ciphertext (sealed before context binding) to the
+			// current v2/AAD-bound format when we hold a key to decrypt it. v2 values
+			// are left byte-for-byte untouched so re-encrypting an unchanged file does
+			// not churn the diff (KEM + GCM are randomized on every Seal).
+			if isLegacyEncrypted(v) && len(privateKeys) > 0 {
+				dec, err := DecryptIfEncrypted(v, privateKeys, contextForFileVar(file, k))
+				if err != nil {
+					return err
+				}
+				enc, err := Encrypt(dec, pubKey, EncryptionContext{VarName: k, PublicKeyVar: pubVar})
+				if err != nil {
+					return err
+				}
+				values[k] = enc
 			}
 			continue
 		}
 		if plainKeys[k] {
 			continue
 		}
-		enc, err := Encrypt(v, pubKey)
+		enc, err := Encrypt(v, pubKey, EncryptionContext{VarName: k, PublicKeyVar: pubVar})
 		if err != nil {
 			return err
 		}
@@ -158,7 +174,7 @@ func DecryptFile(opts DecryptFileOptions) (map[string]string, error) {
 		if !strings.HasPrefix(v, encryptedPrefix) {
 			continue
 		}
-		dec, derr := DecryptIfEncrypted(v, privateKeys)
+		dec, derr := DecryptIfEncrypted(v, privateKeys, contextForFileVar(file, k))
 		if derr != nil {
 			return nil, derr
 		}
