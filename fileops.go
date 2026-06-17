@@ -92,7 +92,7 @@ func EncryptFile(opts EncryptFileOptions) error {
 				if len(privateKeys) == 0 {
 					return ErrMissingPrivateKey
 				}
-				dec, err := DecryptIfEncrypted(v, privateKeys)
+				dec, err := DecryptIfEncrypted(v, privateKeys, contextForFileVar(file, k))
 				if err != nil {
 					return err
 				}
@@ -103,7 +103,7 @@ func EncryptFile(opts EncryptFileOptions) error {
 		if plainKeys[k] {
 			continue
 		}
-		enc, err := Encrypt(v, pubKey)
+		enc, err := Encrypt(v, pubKey, EncryptionContext{VarName: k, PublicKeyVar: pubVar})
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func DecryptFile(opts DecryptFileOptions) (map[string]string, error) {
 		if !strings.HasPrefix(v, encryptedPrefix) {
 			continue
 		}
-		dec, derr := DecryptIfEncrypted(v, privateKeys)
+		dec, derr := DecryptIfEncrypted(v, privateKeys, contextForFileVar(file, k))
 		if derr != nil {
 			return nil, derr
 		}

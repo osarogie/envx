@@ -260,12 +260,14 @@ func TestEncryptDecrypt_RoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	enc, err := Encrypt("hello", pub)
+	ctx := EncryptionContext{VarName: "GREETING", PublicKeyVar: "DOTENV_PUBLIC_KEY"}
+
+	enc, err := Encrypt("hello", pub, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dec, err := DecryptIfEncrypted(enc, []string{priv})
+	dec, err := DecryptIfEncrypted(enc, []string{priv}, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +284,8 @@ func TestLoad_DecryptsEncryptedValuesUsingEnvKeysFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	enc, err := Encrypt("World", pub)
+	// Bind to the same context Load will reconstruct for HELLO in a base .env file.
+	enc, err := Encrypt("World", pub, EncryptionContext{VarName: "HELLO", PublicKeyVar: "DOTENV_PUBLIC_KEY"})
 	if err != nil {
 		t.Fatal(err)
 	}

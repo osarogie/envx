@@ -78,9 +78,16 @@ func parsePrivateKeysList(raw string) []string {
 	return out
 }
 
-// LookupPrivateKeys returns private key(s) for a given env file, checking:
-// 1) environment variables (DOTENV_PRIVATE_KEY*), supporting comma-separated keys
-// 2) a `.env.keys` file located either next to the env file or in the current working directory
+// LookupPrivateKeys returns private key(s) for a given env file, checking, in order:
+//  1. the matching environment variable (DOTENV_PRIVATE_KEY*), supporting comma-separated keys
+//  2. a `.env.keys` file located *adjacent to the target env file*
+//
+// It deliberately does NOT fall back to a `.env.keys` in the current working
+// directory. Reading decapsulation material from the cwd is an injection risk:
+// a process invoked from an attacker-influenced directory (or a repo checkout
+// containing a planted `.env.keys`) could otherwise be tricked into using keys
+// the operator never intended. Keys must come from the explicit environment
+// variable or from a keys file sitting next to the dotenv file being decrypted.
 func LookupPrivateKeys(envFile string) ([]string, error) {
 	keyVar := PrivateKeyVarForEnvFile(envFile)
 
@@ -91,20 +98,13 @@ func LookupPrivateKeys(envFile string) ([]string, error) {
 		}
 	}
 
-	// Prefer `.env.keys` next to the env file; fallback to cwd.
-	candidates := []string{
-		filepath.Join(filepath.Dir(envFile), ".env.keys"),
-		".env.keys",
+	// Only trust a `.env.keys` adjacent to the target env file. No cwd fallback.
+	keysPath := filepath.Join(filepath.Dir(envFile), ".env.keys")
+	m, err := readKeysFile(keysPath)
+	if err != nil {
+		return nil, err
 	}
-
-	for _, p := range candidates {
-		m, err := readKeysFile(p)
-		if err != nil {
-			return nil, err
-		}
-		if m == nil {
-			continue
-		}
+	if m != nil {
 		if v, ok := m[keyVar]; ok {
 			keys := parsePrivateKeysList(v)
 			if len(keys) > 0 {

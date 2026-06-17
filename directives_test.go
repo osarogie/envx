@@ -91,7 +91,9 @@ func TestEncryptFile_plainDirectiveDecryptsPreviouslyEncrypted(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	enc, err := Encrypt("was-secret", pub)
+	// Seal with the context EncryptFile reconstructs for REV so the dotenvx:plain
+	// decrypt path can recover it.
+	enc, err := Encrypt("was-secret", pub, EncryptionContext{VarName: "REV", PublicKeyVar: "DOTENV_PUBLIC_KEY"})
 	if err != nil {
 		t.Fatal(err)
 	}

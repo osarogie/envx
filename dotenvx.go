@@ -43,7 +43,7 @@ func MergeDotenvFiles(files []string) (map[string]string, error) {
 		for k, v := range values {
 			if strings.HasPrefix(v, encryptedPrefix) {
 				hasEncrypted = true
-				dec, derr := DecryptIfEncrypted(v, privateKeys)
+				dec, derr := DecryptIfEncrypted(v, privateKeys, contextForFileVar(f, k))
 				if derr != nil {
 					if errors.Is(keysErr, ErrMissingPrivateKey) {
 						return nil, ErrMissingPrivateKey
